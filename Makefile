@@ -7,15 +7,15 @@ LDFLAGS=-L$(PREFIX)/lib -L./libpidutil
 LDLIBS=-lpidutil -lpthread
 
 SUBDIRS = libpidutil
-PROGS = fsipd logfile_test
-OBJ = logfile.o fsipd.o
+PROGS = data-planesip logfile_test
+OBJ = logfile.o dataplane-sip.o
 
 .PHONY: $(SUBDIRS) get-deps
 
-all: get-deps $(SUBDIRS) fsipd
+all: get-deps $(SUBDIRS) dataplane-sip
 
-fsipd: $(OBJ)
-	$(CC) $(LDFLAGS) $(OBJ) $(LDLIBS) -o fsipd
+dataplane-sip: $(OBJ)
+	$(CC) $(LDFLAGS) $(OBJ) $(LDLIBS) -o dataplane-sip
 
 get-deps:
 	git submodule update --init

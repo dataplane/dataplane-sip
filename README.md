@@ -1,14 +1,16 @@
-[![Build Status](https://travis-ci.org/farrokhi/fsipd.svg?branch=master)](https://travis-ci.org/farrokhi/fsipd)
+# dataplane-sip
 
-# fsipd
+data plane SIP server daemon
 
-fsipd - Fake SIP Daemon
-
-fsipd is a minimal SIP honeypot. It listens on TCP/UDP 5060 (ipv4 as well as IPv6 if available) and logs all incoming SIP requests along with SRC/DST Source and Port in CSV format.
+dataplane-sip is a minimal SIP server daemon. It listens on TCP/UDP 5060
+(IPv4 as well as IPv6 if available).  It logs all incoming SIP requests
+including the source/destination addresses and source/destination ports
+in CSV format.
 
 ## LOG Format
 
-Incoming packets are logged in CSV format in "fsipd.log". Log format is described below:
+Incoming SIP messages are logged in CSV format in "dataplane-sip.log".
+Log format is described below:
 
 `epoch timestamp, protocol, src ip, src port, "message"`
 
