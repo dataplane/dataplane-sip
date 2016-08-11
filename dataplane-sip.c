@@ -506,8 +506,9 @@ daemon_start()
 void
 usage()
 {
-	printf("usage: dataplane-sip [-h] [-l logfile] [-s] [-p priority] \n");
+	printf("usage: dataplane-sip [-h] [-g pidfile] [-l logfile] [-s] [-p priority] \n");
 	printf("\t-h: this message\n");
+	printf("\t-g: specify pid filename (default: /var/run/dataplane-sip.pid\n");
 	printf("\t-l: specify output log filename (default: dataplane-sip.log)\n");
 	printf("\t-s: use syslog instead of local log file\n");
 	printf("\t-p: syslog priority and level (default: user.notice)\n");
