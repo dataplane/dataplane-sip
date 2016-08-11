@@ -65,6 +65,7 @@
  */
 log_t  *lfh;
 struct pidfh *pfh;
+char   *pidfilename = NULL;
 bool	use_syslog = false;
 char   *logfilename = NULL;
 int	syslog_pri = -1;
@@ -418,7 +419,7 @@ daemon_start()
 	pthread_t tcp6_thread, udp6_thread;
 
 	/* Check if we can acquire the pid file */
-	pfh = pidfile_open(NULL, 0600, &otherpid);
+	pfh = pidfile_open(pidfilename, 0600, &otherpid);
 
 	if (pfh == NULL) {
 		if (errno == EEXIST) {
@@ -555,7 +556,7 @@ main(int argc, char *argv[])
 {
 	int opt;
 
-	while ((opt = getopt(argc, argv, "hl:sp:")) != -1) {
+	while ((opt = getopt(argc, argv, "g:hl:sp:")) != -1) {
 		switch (opt) {
 		case 's':
 			use_syslog = true;
@@ -569,6 +570,9 @@ main(int argc, char *argv[])
 			break;
 		case 'l':
 			logfilename = strdup(optarg);
+			break;
+		case 'g':
+			pidfilename = strdup(optarg);
 			break;
 		case 'h':
 			usage();
