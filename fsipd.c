@@ -177,7 +177,7 @@ process_request(int af, struct sockaddr *src, int proto, char *str)
 		inet_ntop(af, &s_in6->sin6_addr, addr_str, sizeof(addr_str));
 		port = ntohs(s_in6->sin6_port);
 		if (use_syslog) {
-			syslog(syslog_pri, "From: %s:%d (%s6) - Message: \"%s\"", addr_str, port, pname, str);
+			syslog(syslog_pri, "saddr: %s; sport: %d; proto: %s6; content: \"%s\"", addr_str, port, pname, str);
 		} else {
 			log_printf(lfh, "%ld,%s6,%s,%d,\"%s\"", time(NULL), pname, addr_str, port, str);
 		}
@@ -185,7 +185,7 @@ process_request(int af, struct sockaddr *src, int proto, char *str)
 	case AF_INET:
 		s_in = (struct sockaddr_in *)src;
 		if (use_syslog) {
-			syslog(syslog_pri, "From: %s:%d (%s4) - Message: \"%s\"", inet_ntoa(s_in->sin_addr), ntohs(s_in->sin_port), pname, str);
+			syslog(syslog_pri, "saddr: %s; sport: %d; proto: %s4; content: \"%s\"", inet_ntoa(s_in->sin_addr), ntohs(s_in->sin_port), pname, str);
 		} else {
 			log_printf(lfh, "%ld,%s4,%s,%d,\"%s\"", time(NULL), pname, inet_ntoa(s_in->sin_addr), ntohs(s_in->sin_port), str);
 		}
@@ -194,7 +194,7 @@ process_request(int af, struct sockaddr *src, int proto, char *str)
 #else
 	s_in = (struct sockaddr_in *)src;
 	if (use_syslog) {
-		syslog(syslog_pri, "From: %s:%d (%s4) - Message: \"%s\"", inet_ntoa(s_in->sin_addr), ntohs(s_in->sin_port), pname, str);
+		syslog(syslog_pri, "saddr: %s; sport: :%d; proto: %s4; content: \"%s\"", inet_ntoa(s_in->sin_addr), ntohs(s_in->sin_port), pname, str);
 	} else {
 		log_printf(lfh, "%ld,%s4,%s,%d,\"%s\"", time(NULL), pname, inet_ntoa(s_in->sin_addr), ntohs(s_in->sin_port), str);
 	}
