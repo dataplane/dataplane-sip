@@ -419,7 +419,7 @@ daemon_start()
 	pthread_t tcp6_thread, udp6_thread;
 
 	/* Check if we can acquire the pid file */
-	pfh = pidfile_open(pidfilename, 0600, &otherpid);
+	pfh = pidfile_open(pidfilename, 0644, &otherpid);
 
 	if (pfh == NULL) {
 		if (errno == EEXIST) {
