@@ -7,7 +7,7 @@ LDFLAGS=-L$(PREFIX)/lib -L./libpidutil
 LDLIBS=-lpidutil -lpthread
 
 SUBDIRS = libpidutil
-PROGS = data-planesip logfile_test
+PROGS = fsipd logfile_test
 OBJ = logfile.o fsipd.o
 
 .PHONY: $(SUBDIRS) get-deps
