@@ -15,7 +15,7 @@ OBJ = logfile.o fsipd.o
 
 .PHONY: $(SUBDIRS) get-deps
 
-all: get-deps $(SUBDIRS) fsipd
+all: $(SUBDIRS) fsipd
 
 fsipd: $(OBJ)
 	$(CC) $(LDFLAGS) $(OBJ) $(LDLIBS) -o fsipd
