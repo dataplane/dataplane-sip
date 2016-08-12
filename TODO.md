@@ -2,3 +2,4 @@
 * ~~Add optional syslog support~~
 * ~~Add custom log filename support~~
 * Add command line options for IPv4/IPv6, port number, logging method, etc
+* Streamline syslog message format

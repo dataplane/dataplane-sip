@@ -1,6 +1,6 @@
 # dataplane-sip
 
-data plane SIP server daemon
+DataPlane SIP server daemon
 
 dataplane-sip is a minimal SIP server daemon. It listens on TCP/UDP 5060
 (IPv4 as well as IPv6 if available).  It logs all incoming SIP requests

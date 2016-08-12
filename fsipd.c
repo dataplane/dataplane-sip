@@ -399,7 +399,7 @@ init_logger()
 	} else {
 		/* open a log file in current directory */
 		if (logfilename == NULL)
-			logfilename = strdup("dataplane-sip.log");
+			logfilename = strdup("fsipd.log");
 		if ((lfh = log_open(logfilename, 0644)) == NULL)
 			err(EXIT_FAILURE, "Cannot open log file \"%s\"", logfilename);
 	}
@@ -506,10 +506,10 @@ daemon_start()
 void
 usage()
 {
-	printf("usage: dataplane-sip [-h] [-g pidfile] [-l logfile] [-s] [-p priority] \n");
+	printf("usage: fsipd [-h] [-g pidfile] [-l logfile] [-s] [-p priority] \n");
 	printf("\t-h: this message\n");
-	printf("\t-g: specify pid filename (default: /var/run/dataplane-sip.pid\n");
-	printf("\t-l: specify output log filename (default: dataplane-sip.log)\n");
+	printf("\t-g: specify pid filename (default: /var/run/fsipd.pid\n");
+	printf("\t-l: specify output log filename (default: fsipd.log)\n");
 	printf("\t-s: use syslog instead of local log file\n");
 	printf("\t-p: syslog priority and level (default: user.notice)\n");
 }

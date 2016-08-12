@@ -8,14 +8,14 @@ LDLIBS=-lpidutil -lpthread
 
 SUBDIRS = libpidutil
 PROGS = data-planesip logfile_test
-OBJ = logfile.o dataplane-sip.o
+OBJ = logfile.o fsipd.o
 
 .PHONY: $(SUBDIRS) get-deps
 
-all: get-deps $(SUBDIRS) dataplane-sip
+all: get-deps $(SUBDIRS) fsipd
 
-dataplane-sip: $(OBJ)
-	$(CC) $(LDFLAGS) $(OBJ) $(LDLIBS) -o dataplane-sip
+fsipd: $(OBJ)
+	$(CC) $(LDFLAGS) $(OBJ) $(LDLIBS) -o fsipd
 
 get-deps:
 	git submodule update --init
