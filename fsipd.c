@@ -113,8 +113,13 @@ void
 daemon_shutdown()
 {
 	pidfile_remove(pfh);
-	if (!use_syslog)
+	if (pidfilename != NULL)
+		free(pidfilename);
+
+	if (!use_syslog) {
 		log_close(lfh);
+		free(logfilename);
+	}
 }
 
 /*
