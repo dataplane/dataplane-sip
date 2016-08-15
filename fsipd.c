@@ -69,6 +69,8 @@ char   *pidfilename = NULL;
 bool	use_syslog = false;
 char   *logfilename = NULL;
 int	syslog_pri = -1;
+char   *crlf = "\r\n";
+char   *vbar = "|";
 
 struct sockaddr_in t_sa, u_sa;
 int	t_sockfd, u_sockfd;
@@ -104,6 +106,45 @@ chomp(char *s)
 	s[i] = '\0';
 
 	return i;
+}
+
+/*
+ * search and replace function
+ * http://coding.debuntu.org/c-implementing-str_replace-replace-all-occurrences-substring
+ */
+char *
+str_replace(const char *string, const char *substr, const char *replacement) {
+	char *tok = NULL;
+	char *newstr = NULL;
+	char *oldstr = NULL;
+	char *head = NULL;
+
+	/* if either substr or replacement is NULL, duplicate string a let caller handle it */
+	if (substr == NULL || replacement == NULL)
+		return strdup(string);
+
+	newstr = strdup (string);
+	head = newstr;
+	while ((tok = strstr(head, substr) )) {
+		oldstr = newstr;
+		newstr = malloc (strlen(oldstr) - strlen(substr) + strlen(replacement) + 1);
+
+		/*failed to alloc mem, free old string and return NULL */
+		if (newstr == NULL) {
+			free (oldstr);
+			return NULL;
+		}
+
+		memcpy(newstr, oldstr, tok - oldstr);
+		memcpy(newstr + (tok - oldstr), replacement, strlen(replacement));
+		memcpy(newstr + (tok - oldstr) + strlen(replacement), tok + strlen(substr), strlen(oldstr) - strlen(substr) - (tok - oldstr));
+		memset(newstr + strlen(oldstr) - strlen(substr) + strlen(replacement), 0, 1);
+
+		/* move back head right after the last replacement */
+		head = newstr + (tok - oldstr) + strlen(replacement);
+		free (oldstr);
+	}
+	return newstr;
 }
 
 /*
@@ -148,6 +189,7 @@ signal_handler(int sig)
 void
 process_request(int af, struct sockaddr *src, int proto, char *str)
 {
+	char *logmsg = NULL;
 	char *p_names[] = {"TCP", "UDP", "RAW", "UNKNOWN"};
 	char *pname;
 	u_int port;
@@ -174,6 +216,8 @@ process_request(int af, struct sockaddr *src, int proto, char *str)
 	}
 
 	chomp(str);
+/* TODO: some strings end in \r\n and some end in \n? */
+	logmsg = str_replace(str, crlf, vbar);
 
 #ifdef PF_INET6
 	switch (af) {
@@ -182,29 +226,30 @@ process_request(int af, struct sockaddr *src, int proto, char *str)
 		inet_ntop(af, &s_in6->sin6_addr, addr_str, sizeof(addr_str));
 		port = ntohs(s_in6->sin6_port);
 		if (use_syslog) {
-			syslog(syslog_pri, "saddr: %s; sport: %d; proto: %s6; content: \"%s\"", addr_str, port, pname, str);
+			syslog(syslog_pri, "saddr: %s; sport: %d; proto: %s6; content: %s", addr_str, port, pname, logmsg);
 		} else {
-			log_printf(lfh, "%ld,%s6,%s,%d,\"%s\"", time(NULL), pname, addr_str, port, str);
+			log_printf(lfh, "%ld,%s6,%s,%d,%s", time(NULL), pname, addr_str, port, logmsg);
 		}
 		break;
 	case AF_INET:
 		s_in = (struct sockaddr_in *)src;
 		if (use_syslog) {
-			syslog(syslog_pri, "saddr: %s; sport: %d; proto: %s4; content: \"%s\"", inet_ntoa(s_in->sin_addr), ntohs(s_in->sin_port), pname, str);
+			syslog(syslog_pri, "saddr: %s; sport: %d; proto: %s4; content: %s", inet_ntoa(s_in->sin_addr), ntohs(s_in->sin_port), pname, logmsg);
 		} else {
-			log_printf(lfh, "%ld,%s4,%s,%d,\"%s\"", time(NULL), pname, inet_ntoa(s_in->sin_addr), ntohs(s_in->sin_port), str);
+			log_printf(lfh, "%ld,%s4,%s,%d,%s", time(NULL), pname, inet_ntoa(s_in->sin_addr), ntohs(s_in->sin_port), logmsg);
 		}
 		break;
 	}
 #else
 	s_in = (struct sockaddr_in *)src;
 	if (use_syslog) {
-		syslog(syslog_pri, "saddr: %s; sport: :%d; proto: %s4; content: \"%s\"", inet_ntoa(s_in->sin_addr), ntohs(s_in->sin_port), pname, str);
+		syslog(syslog_pri, "saddr: %s; sport: :%d; proto: %s4; content: %s", inet_ntoa(s_in->sin_addr), ntohs(s_in->sin_port), pname, logmsg);
 	} else {
-		log_printf(lfh, "%ld,%s4,%s,%d,\"%s\"", time(NULL), pname, inet_ntoa(s_in->sin_addr), ntohs(s_in->sin_port), str);
+		log_printf(lfh, "%ld,%s4,%s,%d,%s", time(NULL), pname, inet_ntoa(s_in->sin_addr), ntohs(s_in->sin_port), logmsg);
 	}
 #endif
 
+	free(logmsg);
 }
 
 /*
