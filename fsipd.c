@@ -140,8 +140,7 @@ char *repl_str(const char *str, const char *from, const char *to) {
 		/* Increase the cache size when necessary. */
 		if (cache_sz < count) {
 			cache_sz += cache_sz_inc;
-			pos_cache = realloc(pos_cache, sizeof(*pos_cache) * cach
-e_sz);
+			pos_cache = realloc(pos_cache, sizeof(*pos_cache) * cache_sz);
 			if (pos_cache == NULL) {
 				goto end_repl_str;
 			}
@@ -180,8 +179,7 @@ e_sz);
 			memcpy(pret, to, tolen);
 			pret += tolen;
 			pstr = str + pos_cache[i] + fromlen;
-			cpylen = (i == count-1 ? orglen : pos_cache[i+1]) - pos_
-cache[i] - fromlen;
+			cpylen = (i == count-1 ? orglen : pos_cache[i+1]) - pos_cache[i] - fromlen;
 			memcpy(pret, pstr, cpylen);
 			pret += cpylen;
 		}
