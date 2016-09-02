@@ -60,6 +60,9 @@
 #define IPV6_BINDV6ONLY IPV6_V6ONLY
 #endif					/* IPV6_BINDV6ONLY */
 
+/* bzero is deprecated */
+#define bzero(b,len) (memset((b), '\0', (len)), (void) 0)
+
 /*
  * Globals
  */
@@ -69,8 +72,8 @@ char   *pidfilename = NULL;
 bool	use_syslog = false;
 char   *logfilename = NULL;
 int	syslog_pri = -1;
-char   *crlf = "\r\n";
-char   *vbar = "|";
+char   crlf[] = "\r\n";
+char   vbar[] = "|";
 
 struct sockaddr_in t_sa, u_sa;
 int	t_sockfd, u_sockfd;
@@ -216,7 +219,6 @@ process_request(int af, struct sockaddr *src, int proto, char *str)
 	}
 
 	chomp(str);
-/* TODO: some strings end in \r\n and some end in \n? */
 	logmsg = str_replace(str, crlf, vbar);
 
 #ifdef PF_INET6
