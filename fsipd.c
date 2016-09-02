@@ -40,6 +40,7 @@
 
 #include <signal.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -72,8 +73,6 @@ char   *pidfilename = NULL;
 bool	use_syslog = false;
 char   *logfilename = NULL;
 int	syslog_pri = -1;
-char   crlf[] = "\r\n";
-char   vbar[] = "|";
 
 struct sockaddr_in t_sa, u_sa;
 int	t_sockfd, u_sockfd;
@@ -113,41 +112,87 @@ chomp(char *s)
 
 /*
  * search and replace function
- * http://coding.debuntu.org/c-implementing-str_replace-replace-all-occurrences-substring
+ * http://creativeandcritical.net/str-replace-c
  */
-char *
-str_replace(const char *string, const char *substr, const char *replacement) {
-	char *tok = NULL;
-	char *newstr = NULL;
-	char *oldstr = NULL;
-	char *head = NULL;
+char *repl_str(const char *str, const char *from, const char *to) {
 
-	/* if either substr or replacement is NULL, duplicate string a let caller handle it */
-	if (substr == NULL || replacement == NULL)
-		return strdup(string);
+	/* Adjust each of the below values to suit your needs. */
 
-	newstr = strdup (string);
-	head = newstr;
-	while ((tok = strstr(head, substr) )) {
-		oldstr = newstr;
-		newstr = malloc (strlen(oldstr) - strlen(substr) + strlen(replacement) + 1);
+	/* Increment positions cache size initially by this number. */
+	size_t cache_sz_inc = 16;
+	/* Thereafter, each time capacity needs to be increased,
+	 * multiply the increment by this factor. */
+	const size_t cache_sz_inc_factor = 3;
+	/* But never increment capacity by more than this number. */
+	const size_t cache_sz_inc_max = 1048576;
 
-		/*failed to alloc mem, free old string and return NULL */
-		if (newstr == NULL) {
-			free (oldstr);
-			return NULL;
+	char *pret, *ret = NULL;
+	const char *pstr2, *pstr = str;
+	size_t i, count = 0;
+	ptrdiff_t *pos_cache = NULL;
+	size_t cache_sz = 0;
+	size_t cpylen, orglen, retlen, tolen, fromlen = strlen(from);
+
+	/* Find all matches and cache their positions. */
+	while ((pstr2 = strstr(pstr, from)) != NULL) {
+		count++;
+
+		/* Increase the cache size when necessary. */
+		if (cache_sz < count) {
+			cache_sz += cache_sz_inc;
+			pos_cache = realloc(pos_cache, sizeof(*pos_cache) * cach
+e_sz);
+			if (pos_cache == NULL) {
+				goto end_repl_str;
+			}
+			cache_sz_inc *= cache_sz_inc_factor;
+			if (cache_sz_inc > cache_sz_inc_max) {
+				cache_sz_inc = cache_sz_inc_max;
+			}
 		}
 
-		memcpy(newstr, oldstr, tok - oldstr);
-		memcpy(newstr + (tok - oldstr), replacement, strlen(replacement));
-		memcpy(newstr + (tok - oldstr) + strlen(replacement), tok + strlen(substr), strlen(oldstr) - strlen(substr) - (tok - oldstr));
-		memset(newstr + strlen(oldstr) - strlen(substr) + strlen(replacement), 0, 1);
-
-		/* move back head right after the last replacement */
-		head = newstr + (tok - oldstr) + strlen(replacement);
-		free (oldstr);
+		pos_cache[count-1] = pstr2 - str;
+		pstr = pstr2 + fromlen;
 	}
-	return newstr;
+
+	orglen = pstr - str + strlen(pstr);
+
+	/* Allocate memory for the post-replacement string. */
+	if (count > 0) {
+		tolen = strlen(to);
+		retlen = orglen + (tolen - fromlen) * count;
+	} else	retlen = orglen;
+	ret = malloc(retlen + 1);
+	if (ret == NULL) {
+		goto end_repl_str;
+	}
+
+	if (count == 0) {
+		/* If no matches, then just duplicate the string. */
+		strcpy(ret, str);
+	} else {
+		/* Otherwise, duplicate the string whilst performing
+		 * the replacements using the position cache. */
+		pret = ret;
+		memcpy(pret, str, pos_cache[0]);
+		pret += pos_cache[0];
+		for (i = 0; i < count; i++) {
+			memcpy(pret, to, tolen);
+			pret += tolen;
+			pstr = str + pos_cache[i] + fromlen;
+			cpylen = (i == count-1 ? orglen : pos_cache[i+1]) - pos_
+cache[i] - fromlen;
+			memcpy(pret, pstr, cpylen);
+			pret += cpylen;
+		}
+		ret[retlen] = '\0';
+	}
+
+end_repl_str:
+	/* Free the cache and return the post-replacement string,
+	 * which will be NULL in the event of an error. */
+	free(pos_cache);
+	return ret;
 }
 
 /*
@@ -219,8 +264,12 @@ process_request(int af, struct sockaddr *src, int proto, char *str)
 	}
 
 	chomp(str);
-	logmsg = str_replace(str, crlf, vbar);
 
+	logmsg = repl_str(str, "\r\n", "|");    /* sipvicious uses \r\n */
+	logmsg = repl_str(logmsg, "\n", "|");   /* CiscoUCSM uses \n */
+	if (logmsg == NULL)
+		return;
+	
 #ifdef PF_INET6
 	switch (af) {
 	case AF_INET6:
