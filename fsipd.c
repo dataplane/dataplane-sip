@@ -129,7 +129,7 @@ char *repl_str(const char *str, const char *from, const char *to) {
 	char *pret, *ret = NULL;
 	const char *pstr2, *pstr = str;
 	size_t i, count = 0;
-	ptrdiff_t *pos_cache = NULL;
+	uintptr_t *pos_cache = NULL;
 	size_t cache_sz = 0;
 	size_t cpylen, orglen, retlen, tolen, fromlen = strlen(from);
 
