@@ -41,7 +41,11 @@
 #include <signal.h>
 #include <stdbool.h>
 #include <stddef.h>
+
+#if (__STDC_VERSION__ >= 199901L)
 #include <stdint.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -129,7 +133,11 @@ char *repl_str(const char *str, const char *from, const char *to) {
 	char *pret, *ret = NULL;
 	const char *pstr2, *pstr = str;
 	size_t i, count = 0;
-	uintptr_t *pos_cache = NULL;
+	#if (__STDC_VERSION__ >= 199901L)
+	uintptr_t *pos_cache_tmp, *pos_cache = NULL;
+	#else
+	ptrdiff_t *pos_cache_tmp, *pos_cache = NULL;
+	#endif
 	size_t cache_sz = 0;
 	size_t cpylen, orglen, retlen, tolen, fromlen = strlen(from);
 
@@ -140,10 +148,10 @@ char *repl_str(const char *str, const char *from, const char *to) {
 		/* Increase the cache size when necessary. */
 		if (cache_sz < count) {
 			cache_sz += cache_sz_inc;
-			pos_cache = realloc(pos_cache, sizeof(*pos_cache) * cache_sz);
-			if (pos_cache == NULL) {
+			pos_cache_tmp = realloc(pos_cache, sizeof(*pos_cache) * cache_sz);
+			if (pos_cache_tmp == NULL) {
 				goto end_repl_str;
-			}
+			} else pos_cache = pos_cache_tmp;
 			cache_sz_inc *= cache_sz_inc_factor;
 			if (cache_sz_inc > cache_sz_inc_max) {
 				cache_sz_inc = cache_sz_inc_max;
